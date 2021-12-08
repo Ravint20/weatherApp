@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Weather from './components/WeatherScreen';
 import SearchBar from './components/SearchBar';
 
@@ -19,9 +20,21 @@ export default function App() {
         const API = `https://api.openweathermap.org/data/2.5/weather?q=${place}&units=metric&appid=${API_KEY}`
         try {
             const response = await fetch(API);
+
+            // adding to local storge when search is success
+            AsyncStorage.setItem(place, JSON.stringify(response), (err)=> {
+                if(err){
+                    console.log("an error");
+                    throw err;
+                }
+                console.log("success saved in local storage");
+            }).catch((err)=> {
+                console.log("error is: " + err);
+            });
             if (response.status == 200) {
                 const data = await response.json();
                 setWeatherData(data);
+               
             } else {
                 setWeatherData(null);
             }
@@ -36,6 +49,18 @@ export default function App() {
         getWeatherData('batticaloa');
     }, [])
 
+// getting data when needed
+    _gettingData = async () => {
+        try {
+          const value = await AsyncStorage.getItem('place');
+          if (value !== null) {
+            // We have data!!
+            console.log(JSON.parse(value));;
+          }
+        } catch (error) {
+          // Error retrieving data
+        }
+      };
 
     // main rendering method
 
